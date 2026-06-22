@@ -1,0 +1,293 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f7f3ec;
+  color: #222;
+  font-family: Arial, sans-serif;
+}
+
+button,
+input,
+textarea {
+  font-family: inherit;
+}
+
+.app-title {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.planner-page {
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.planner-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.planner-panel {
+  background: #fffdf8;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.planner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.planner-header p {
+  font-weight: bold;
+}
+
+.planner-header h2 {
+  font-size: 18px;
+}
+
+.note-input,
+.review-input {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 10px;
+  resize: none;
+}
+
+.note-input {
+  height: 70px;
+}
+
+.review-input {
+  height: 90px;
+  margin-top: 12px;
+}
+
+.planner-main {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.todo-placeholder,
+.time-area {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 10px;
+  background: white;
+}
+
+.todo-placeholder p {
+  font-size: 13px;
+  color: #777;
+}
+
+.time-table {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  height: 520px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  background: #fafafa;
+}
+
+.time-labels {
+  position: relative;
+}
+
+.time-label {
+  height: 108px;
+  font-size: 12px;
+  color: #666;
+  padding-top: 2px;
+  text-align: right;
+  padding-right: 6px;
+}
+
+.time-grid {
+  position: relative;
+  user-select: none;
+}
+
+.time-slot {
+  height: 18px;
+  border-top: 1px solid #eee;
+}
+
+.time-slot:nth-child(6n + 1) {
+  border-top: 1px solid #ccc;
+}
+
+.time-block {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  border-radius: 8px;
+  padding: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #222;
+}
+
+.time-block strong {
+  display: block;
+}
+
+.time-block span {
+  font-size: 11px;
+}
+
+.preview {
+  background: rgba(180, 160, 255, 0.35);
+  border: 1px dashed #8f7aff;
+  pointer-events: none;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+}
+
+.modal {
+  width: 340px;
+  background: white;
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.modal label {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.modal input,
+.modal textarea {
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.modal textarea {
+  height: 80px;
+  resize: none;
+}
+
+.modal-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.modal-buttons button {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.danger {
+  background: #ffe1e1;
+  color: #9a2222;
+}
+
+@media (max-width: 900px) {
+  .planner-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .planner-main {
+    grid-template-columns: 1fr;
+  }
+}
+.horizontal-time-table {
+  width: 100%;
+  border: 1px solid #d8d8d8;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fafafa;
+  margin-top: 12px;
+}
+
+.horizontal-hour-row {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  height: 28px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.horizontal-hour-row:last-child {
+  border-bottom: none;
+}
+
+.horizontal-time-label {
+  font-size: 13px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f3f3;
+  border-right: 1px solid #dddddd;
+}
+
+.horizontal-slot-group {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.horizontal-slot {
+  border-right: 1px solid #eeeeee;
+  background: #ffffff;
+}
+
+.horizontal-slot:last-child {
+  border-right: none;
+}
+.horizontal-slot.selected {
+  background: #c9b8ff;
+}
+.horizontal-slot.has-block {
+  background: #c9b8ff;
+}
+
+.slot-block-label {
+  font-size: 10px;
+  line-height: 1.1;
+  padding: 2px 4px;
+  white-space: nowrap;
+  overflow: visible;
+  color: #222;
+  pointer-events: none;
+}
+
+.slot-block-label strong {
+  display: block;
+}
+
+.slot-block-label span {
+  font-size: 9px;
+  opacity: 0.75;
+}
