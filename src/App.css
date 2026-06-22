@@ -338,3 +338,101 @@ textarea {
   justify-content: space-between;
   margin-top: 14px;
 }
+.todo-list {
+  width: 100%;
+}
+
+.todo-item {
+  border-bottom: 1px solid #e6e6e6;
+  padding: 10px 0;
+}
+
+.todo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.todo-title-area {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.todo-title {
+  font-size: 16px;
+  word-break: break-word;
+}
+
+.todo-title.done {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.todo-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.todo-toggle-button,
+.todo-delete-button {
+  font-size: 12px;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+
+.todo-description {
+  margin: 8px 0 0 24px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+.todo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.todo-form input,
+.todo-form textarea {
+  width: 100%;
+}
+
+.todo-form button {
+  align-self: center;
+}
+
+.planner-main {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(360px, 1.4fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .planner-main {
+    grid-template-columns: 1fr;
+  }
+}
+.todo-add-open-button {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.todo-form-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}

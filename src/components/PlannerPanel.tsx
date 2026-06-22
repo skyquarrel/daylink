@@ -1,5 +1,6 @@
 import type { PlannerDay, TimeBlock } from "../types/planner";
 import TimeTable from "./TimeTable";
+import TodoList from "./TodoList";
 
 interface Props {
   plannerDay: PlannerDay;
@@ -36,7 +37,7 @@ function PlannerPanel({ plannerDay, onChange }: Props) {
       <div className="planner-main">
         <div>
           <h3>To-do</h3>
-          <p>다음 단계에서 추가합니다.</p>
+          <TodoList />
         </div>
 
         <div>
