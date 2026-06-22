@@ -291,3 +291,50 @@ textarea {
   font-size: 9px;
   opacity: 0.75;
 }
+.simple-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.simple-modal {
+  width: 320px;
+  background: white;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+.simple-modal h3 {
+  margin-top: 0;
+}
+
+.simple-modal label {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.simple-modal input,
+.simple-modal textarea {
+  width: 100%;
+  margin-top: 5px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.simple-modal textarea {
+  height: 80px;
+  resize: none;
+}
+
+.simple-modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+}
