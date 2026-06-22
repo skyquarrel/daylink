@@ -6,19 +6,21 @@ const today = new Date().toISOString().slice(0, 10);
 
 const initialDays: PlannerDay[] = [
   {
-    ownerId: "me",
-    date: today,
-    note: "",
-    timeBlocks: [],
-    review: "",
-  },
-  {
-    ownerId: "friend",
-    date: today,
-    note: "",
-    timeBlocks: [],
-    review: "",
-  },
+  ownerId: "me",
+  date: today,
+  note: "",
+  todos: [],
+  timeBlocks: [],
+  review: "",
+},
+{
+  ownerId: "friend",
+  date: today,
+  note: "",
+  todos: [],
+  timeBlocks: [],
+  review: "",
+},
 ];
 
 function PlannerPage() {

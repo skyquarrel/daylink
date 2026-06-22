@@ -1,15 +1,12 @@
 import { useState } from "react";
+import type { TodoItem } from "../types/planner";
 
-interface TodoItem {
-  id: string;
-  title: string;
-  description: string;
-  completed: boolean;
-  isDescriptionOpen: boolean;
+interface Props {
+  todos: TodoItem[];
+  onChange: (todos: TodoItem[]) => void;
 }
 
-function TodoList() {
-  const [todos, setTodos] = useState<TodoItem[]>([]);
+function TodoList({ todos, onChange }: Props) {
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [isAdding, setIsAdding] = useState(false);
@@ -25,23 +22,23 @@ function TodoList() {
       isDescriptionOpen: newDescription.trim() !== "",
     };
 
-    setTodos((prev) => [...prev, newTodo]);
+    onChange([...todos, newTodo]);
     setNewTitle("");
     setNewDescription("");
     setIsAdding(false);
   };
 
   const toggleCompleted = (id: string) => {
-    setTodos((prev) =>
-      prev.map((todo) =>
+    onChange(
+      todos.map((todo) =>
         todo.id === id ? { ...todo, completed: !todo.completed } : todo
       )
     );
   };
 
   const toggleDescription = (id: string) => {
-    setTodos((prev) =>
-      prev.map((todo) =>
+    onChange(
+      todos.map((todo) =>
         todo.id === id
           ? { ...todo, isDescriptionOpen: !todo.isDescriptionOpen }
           : todo
@@ -50,7 +47,7 @@ function TodoList() {
   };
 
   const deleteTodo = (id: string) => {
-    setTodos((prev) => prev.filter((todo) => todo.id !== id));
+    onChange(todos.filter((todo) => todo.id !== id));
   };
 
   return (

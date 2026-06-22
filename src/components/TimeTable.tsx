@@ -1,23 +1,21 @@
 import { useState } from "react";
+import type { OwnerId, TimeBlock } from "../types/planner";
 import { formatTime } from "../utils/time";
 
 const HOURS = 24;
 const SLOTS_PER_HOUR = 6;
 const SLOT_MINUTES = 10;
 
-interface TimeBlock {
-  id: string;
-  title: string;
-  memo: string;
-  startSlot: number;
-  endSlot: number;
-  color: string;
+interface Props {
+  ownerId: OwnerId;
+  date: string;
+  blocks: TimeBlock[];
+  onChange: (blocks: TimeBlock[]) => void;
 }
 
-function TimeTable() {
+function TimeTable({ ownerId, date, blocks, onChange }: Props) {
   const [dragStart, setDragStart] = useState<number | null>(null);
   const [dragEnd, setDragEnd] = useState<number | null>(null);
-  const [blocks, setBlocks] = useState<TimeBlock[]>([]);
   const [selectedBlock, setSelectedBlock] = useState<TimeBlock | null>(null);
 
   const getSlotNumber = (hourIndex: number, slotIndex: number) => {
@@ -30,15 +28,22 @@ function TimeTable() {
 
   const handleMouseDown = (hourIndex: number, slotIndex: number) => {
     const slotNumber = getSlotNumber(hourIndex, slotIndex);
+    const existingBlock = getBlockForSlot(slotNumber);
+
+    if (existingBlock) {
+      setSelectedBlock(existingBlock);
+      setDragStart(null);
+      setDragEnd(null);
+      return;
+    }
+
     setDragStart(slotNumber);
     setDragEnd(slotNumber);
   };
 
   const handleMouseEnter = (hourIndex: number, slotIndex: number) => {
     if (dragStart === null) return;
-
-    const slotNumber = getSlotNumber(hourIndex, slotIndex);
-    setDragEnd(slotNumber);
+    setDragEnd(getSlotNumber(hourIndex, slotIndex));
   };
 
   const handleMouseUp = () => {
@@ -49,6 +54,8 @@ function TimeTable() {
 
     const newBlock: TimeBlock = {
       id: crypto.randomUUID(),
+      ownerId,
+      date,
       title: "새 기록",
       memo: "",
       startSlot: start,
@@ -56,9 +63,8 @@ function TimeTable() {
       color: "#c9b8ff",
     };
 
-    setBlocks((prev) => [...prev, newBlock]);
+    onChange([...blocks, newBlock]);
     setSelectedBlock(newBlock);
-
     setDragStart(null);
     setDragEnd(null);
   };
@@ -84,8 +90,10 @@ function TimeTable() {
   };
 
   const updateSelectedBlock = (updatedBlock: TimeBlock) => {
-    setBlocks((prev) =>
-      prev.map((block) => (block.id === updatedBlock.id ? updatedBlock : block))
+    onChange(
+      blocks.map((block) =>
+        block.id === updatedBlock.id ? updatedBlock : block
+      )
     );
     setSelectedBlock(updatedBlock);
   };
@@ -93,7 +101,7 @@ function TimeTable() {
   const deleteSelectedBlock = () => {
     if (!selectedBlock) return;
 
-    setBlocks((prev) => prev.filter((block) => block.id !== selectedBlock.id));
+    onChange(blocks.filter((block) => block.id !== selectedBlock.id));
     setSelectedBlock(null);
   };
 
@@ -124,11 +132,7 @@ function TimeTable() {
                     style={block ? { backgroundColor: block.color } : undefined}
                     onMouseDown={() => handleMouseDown(hourIndex, slotIndex)}
                     onMouseEnter={() => handleMouseEnter(hourIndex, slotIndex)}
-                    onClick={() => {
-                      if (block) {
-                        setSelectedBlock(block);
-                      }
-                    }}
+                    
                   >
                     {block && isBlockStart(slotNumber, block) && (
                       <div className="slot-block-label">

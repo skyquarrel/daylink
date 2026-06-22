@@ -1,4 +1,4 @@
-import type { PlannerDay, TimeBlock } from "../types/planner";
+import type { PlannerDay, TodoItem, TimeBlock } from "../types/planner";
 import TimeTable from "./TimeTable";
 import TodoList from "./TodoList";
 
@@ -10,7 +10,14 @@ interface Props {
 function PlannerPanel({ plannerDay, onChange }: Props) {
   const label = plannerDay.ownerId === "me" ? "내 플래너" : "친구 플래너";
 
-  const updateBlocks = (timeBlocks: TimeBlock[]) => {
+  const updateTodos = (todos: TodoItem[]) => {
+    onChange({
+      ...plannerDay,
+      todos,
+    });
+  };
+
+  const updateTimeBlocks = (timeBlocks: TimeBlock[]) => {
     onChange({
       ...plannerDay,
       timeBlocks,
@@ -19,8 +26,10 @@ function PlannerPanel({ plannerDay, onChange }: Props) {
 
   return (
     <section className="planner-panel">
-      <h2>{label}</h2>
-      <p>{plannerDay.date}</p>
+      <header className="planner-header">
+        <p>{label}</p>
+        <h2>{plannerDay.date}</h2>
+      </header>
 
       <textarea
         className="note-input"
@@ -35,18 +44,18 @@ function PlannerPanel({ plannerDay, onChange }: Props) {
       />
 
       <div className="planner-main">
-        <div>
+        <div className="todo-area">
           <h3>To-do</h3>
-          <TodoList />
+          <TodoList todos={plannerDay.todos} onChange={updateTodos} />
         </div>
 
-        <div>
+        <div className="time-area">
           <h3>Time Table</h3>
           <TimeTable
             ownerId={plannerDay.ownerId}
             date={plannerDay.date}
             blocks={plannerDay.timeBlocks}
-            onChange={updateBlocks}
+            onChange={updateTimeBlocks}
           />
         </div>
       </div>
