@@ -83,6 +83,7 @@ function PlannerPage() {
       await setDoc(
         ref,
         {
+          uid: user.uid,
           email: user.email,
           displayName: user.displayName,
           days,
