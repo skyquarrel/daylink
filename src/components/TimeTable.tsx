@@ -19,37 +19,31 @@ function TimeTable({ ownerId, date, blocks, onChange, readOnly = false }: Props)
   const [dragEnd, setDragEnd] = useState<number | null>(null);
   const [selectedBlock, setSelectedBlock] = useState<TimeBlock | null>(null);
 
-  const getSlotNumber = (hourIndex: number, slotIndex: number) => {
-    return hourIndex * SLOTS_PER_HOUR + slotIndex;
-  };
+  const getSlotNumber = (hourIndex: number, slotIndex: number) =>
+    hourIndex * SLOTS_PER_HOUR + slotIndex;
 
-  const slotToTime = (slotNumber: number) => {
-    return formatTime(slotNumber * SLOT_MINUTES);
-  };
+  const slotToTime = (slotNumber: number) =>
+    formatTime(slotNumber * SLOT_MINUTES);
 
-  const getBlockForSlot = (slotNumber: number) => {
-    return blocks.find(
+  const getBlockForSlot = (slotNumber: number) =>
+    blocks.find(
       (block) => slotNumber >= block.startSlot && slotNumber < block.endSlot
     );
-  };
 
   const getBlockSegments = (block: TimeBlock) => {
     const segments = [];
-
     let currentSlot = block.startSlot;
 
     while (currentSlot < block.endSlot) {
       const row = Math.floor(currentSlot / SLOTS_PER_HOUR);
       const col = currentSlot % SLOTS_PER_HOUR;
-
       const rowEndSlot = (row + 1) * SLOTS_PER_HOUR;
       const segmentEnd = Math.min(block.endSlot, rowEndSlot);
-      const span = segmentEnd - currentSlot;
 
       segments.push({
         row,
         col,
-        span,
+        span: segmentEnd - currentSlot,
         isFirst: currentSlot === block.startSlot,
       });
 
@@ -59,10 +53,18 @@ function TimeTable({ ownerId, date, blocks, onChange, readOnly = false }: Props)
     return segments;
   };
 
-  const handleMouseDown = (hourIndex: number, slotIndex: number) => {
+  const getSlotFromPoint = (clientX: number, clientY: number) => {
+    const element = document.elementFromPoint(clientX, clientY);
+    const slot = element?.closest("[data-slot]");
+    if (!slot) return null;
+
+    const value = Number((slot as HTMLElement).dataset.slot);
+    return Number.isNaN(value) ? null : value;
+  };
+
+  const startDrag = (slotNumber: number) => {
     if (readOnly) return;
 
-    const slotNumber = getSlotNumber(hourIndex, slotIndex);
     const existingBlock = getBlockForSlot(slotNumber);
 
     if (existingBlock) {
@@ -76,14 +78,7 @@ function TimeTable({ ownerId, date, blocks, onChange, readOnly = false }: Props)
     setDragEnd(slotNumber);
   };
 
-  const handleMouseEnter = (hourIndex: number, slotIndex: number) => {
-    if (readOnly) return;
-    if (dragStart === null) return;
-
-    setDragEnd(getSlotNumber(hourIndex, slotIndex));
-  };
-
-  const handleMouseUp = () => {
+  const finishDrag = () => {
     if (readOnly) return;
     if (dragStart === null || dragEnd === null) return;
 
@@ -107,10 +102,9 @@ function TimeTable({ ownerId, date, blocks, onChange, readOnly = false }: Props)
     setDragEnd(null);
   };
 
-  const isSelected = (hourIndex: number, slotIndex: number) => {
+  const isSelected = (slotNumber: number) => {
     if (dragStart === null || dragEnd === null) return false;
 
-    const slotNumber = getSlotNumber(hourIndex, slotIndex);
     const start = Math.min(dragStart, dragEnd);
     const end = Math.max(dragStart, dragEnd);
 
@@ -130,8 +124,7 @@ function TimeTable({ ownerId, date, blocks, onChange, readOnly = false }: Props)
   };
 
   const deleteSelectedBlock = () => {
-    if (readOnly) return;
-    if (!selectedBlock) return;
+    if (readOnly || !selectedBlock) return;
 
     onChange(blocks.filter((block) => block.id !== selectedBlock.id));
     setSelectedBlock(null);
@@ -139,32 +132,47 @@ function TimeTable({ ownerId, date, blocks, onChange, readOnly = false }: Props)
 
   return (
     <>
-      <div className="horizontal-time-table" onMouseUp={handleMouseUp}>
+      <div
+        className="horizontal-time-table"
+        onPointerMove={(e) => {
+          if (readOnly || dragStart === null) return;
+
+          const slotNumber = getSlotFromPoint(e.clientX, e.clientY);
+          if (slotNumber === null) return;
+
+          setDragEnd(slotNumber);
+        }}
+        onPointerUp={finishDrag}
+        onPointerCancel={finishDrag}
+      >
         {Array.from({ length: HOURS }, (_, hourIndex) => (
           <div key={hourIndex} className="horizontal-hour-row">
-            <div
-              className="horizontal-time-label"
-              onMouseDown={(e) => e.stopPropagation()}
-              onMouseEnter={(e) => e.stopPropagation()}
-            >
+            <div className="horizontal-time-label">
               {formatTime(hourIndex * 60)}
             </div>
 
             <div className="horizontal-slot-group">
-              {Array.from({ length: SLOTS_PER_HOUR }, (_, slotIndex) => (
-                <div
-                  key={slotIndex}
-                  className={[
-                    "horizontal-slot",
-                    isSelected(hourIndex, slotIndex) ? "selected" : "",
-                    readOnly ? "readonly-slot" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  onMouseDown={() => handleMouseDown(hourIndex, slotIndex)}
-                  onMouseEnter={() => handleMouseEnter(hourIndex, slotIndex)}
-                />
-              ))}
+              {Array.from({ length: SLOTS_PER_HOUR }, (_, slotIndex) => {
+                const slotNumber = getSlotNumber(hourIndex, slotIndex);
+
+                return (
+                  <div
+                    key={slotIndex}
+                    data-slot={slotNumber}
+                    className={[
+                      "horizontal-slot",
+                      isSelected(slotNumber) ? "selected" : "",
+                      readOnly ? "readonly-slot" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    onPointerDown={(e) => {
+                      e.currentTarget.setPointerCapture(e.pointerId);
+                      startDrag(slotNumber);
+                    }}
+                  />
+                );
+              })}
             </div>
           </div>
         ))}
@@ -180,7 +188,7 @@ function TimeTable({ ownerId, date, blocks, onChange, readOnly = false }: Props)
                   gridColumn: `${segment.col + 2} / span ${segment.span}`,
                   backgroundColor: block.color,
                 }}
-                onMouseDown={(e) => {
+                onPointerDown={(e) => {
                   e.stopPropagation();
                   if (!readOnly) setSelectedBlock(block);
                 }}

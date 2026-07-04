@@ -533,3 +533,15 @@ textarea {
 .todo-edit-form textarea {
   min-height: 70px;
 }
+
+.horizontal-time-table,
+.horizontal-slot {
+  touch-action: none;
+}
+
+.horizontal-time-table,
+.horizontal-slot {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
