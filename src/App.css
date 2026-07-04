@@ -455,3 +455,81 @@ textarea {
   color: #666;
   font-size: 14px;
 }
+.friend-search {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 auto 18px;
+}
+
+.friend-search input {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.friend-search button {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+
+.friend-search p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #666;
+}
+.horizontal-time-table {
+  position: relative;
+}
+
+.time-block-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 58px repeat(6, 1fr);
+  grid-template-rows: repeat(24, 28px);
+  pointer-events: none;
+}
+
+.time-block-bar {
+  z-index: 3;
+  margin: 3px 4px;
+  border-radius: 8px;
+  padding: 3px 6px;
+  font-size: 10px;
+  line-height: 1.1;
+  color: #222;
+  overflow: hidden;
+  pointer-events: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.time-block-bar strong {
+  display: block;
+}
+
+.time-block-bar span {
+  font-size: 9px;
+  opacity: 0.75;
+}
+.horizontal-time-label {
+  user-select: none;
+  pointer-events: none;
+}
+.todo-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.todo-edit-form input,
+.todo-edit-form textarea {
+  width: 100%;
+}
+
+.todo-edit-form textarea {
+  min-height: 70px;
+}

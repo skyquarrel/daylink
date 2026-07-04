@@ -8,9 +8,12 @@ interface Props {
 }
 
 function PlannerPanel({ plannerDay, onChange }: Props) {
-  const label = plannerDay.ownerId === "me" ? "내 플래너" : "친구 플래너";
+  const isFriend = plannerDay.ownerId === "friend";
+  const label = isFriend ? "친구 플래너" : "내 플래너";
 
   const updateTodos = (todos: TodoItem[]) => {
+    if (isFriend) return;
+
     onChange({
       ...plannerDay,
       todos,
@@ -18,6 +21,8 @@ function PlannerPanel({ plannerDay, onChange }: Props) {
   };
 
   const updateTimeBlocks = (timeBlocks: TimeBlock[]) => {
+    if (isFriend) return;
+
     onChange({
       ...plannerDay,
       timeBlocks,
@@ -25,7 +30,7 @@ function PlannerPanel({ plannerDay, onChange }: Props) {
   };
 
   return (
-    <section className="planner-panel">
+    <section className={isFriend ? "planner-panel readonly" : "planner-panel"}>
       <header className="planner-header">
         <p>{label}</p>
         <h2>{plannerDay.date}</h2>
@@ -35,18 +40,25 @@ function PlannerPanel({ plannerDay, onChange }: Props) {
         className="note-input"
         placeholder="오늘의 노래, 기분, 짧은 메모..."
         value={plannerDay.note}
-        onChange={(e) =>
+        readOnly={isFriend}
+        onChange={(e) => {
+          if (isFriend) return;
+
           onChange({
             ...plannerDay,
             note: e.target.value,
-          })
-        }
+          });
+        }}
       />
 
       <div className="planner-main">
         <div className="todo-area">
           <h3>To-do</h3>
-          <TodoList todos={plannerDay.todos} onChange={updateTodos} />
+          <TodoList
+            todos={plannerDay.todos}
+            onChange={updateTodos}
+            readOnly={isFriend}
+          />
         </div>
 
         <div className="time-area">
@@ -56,6 +68,7 @@ function PlannerPanel({ plannerDay, onChange }: Props) {
             date={plannerDay.date}
             blocks={plannerDay.timeBlocks}
             onChange={updateTimeBlocks}
+            readOnly={isFriend}
           />
         </div>
       </div>
@@ -64,12 +77,15 @@ function PlannerPanel({ plannerDay, onChange }: Props) {
         className="review-input"
         placeholder="오늘 하루를 어떻게 살아냈나요?"
         value={plannerDay.review}
-        onChange={(e) =>
+        readOnly={isFriend}
+        onChange={(e) => {
+          if (isFriend) return;
+
           onChange({
             ...plannerDay,
             review: e.target.value,
-          })
-        }
+          });
+        }}
       />
     </section>
   );

@@ -11,9 +11,10 @@ interface Props {
   date: string;
   blocks: TimeBlock[];
   onChange: (blocks: TimeBlock[]) => void;
+  readOnly?: boolean;
 }
 
-function TimeTable({ ownerId, date, blocks, onChange }: Props) {
+function TimeTable({ ownerId, date, blocks, onChange, readOnly = false }: Props) {
   const [dragStart, setDragStart] = useState<number | null>(null);
   const [dragEnd, setDragEnd] = useState<number | null>(null);
   const [selectedBlock, setSelectedBlock] = useState<TimeBlock | null>(null);
@@ -26,7 +27,41 @@ function TimeTable({ ownerId, date, blocks, onChange }: Props) {
     return formatTime(slotNumber * SLOT_MINUTES);
   };
 
+  const getBlockForSlot = (slotNumber: number) => {
+    return blocks.find(
+      (block) => slotNumber >= block.startSlot && slotNumber < block.endSlot
+    );
+  };
+
+  const getBlockSegments = (block: TimeBlock) => {
+    const segments = [];
+
+    let currentSlot = block.startSlot;
+
+    while (currentSlot < block.endSlot) {
+      const row = Math.floor(currentSlot / SLOTS_PER_HOUR);
+      const col = currentSlot % SLOTS_PER_HOUR;
+
+      const rowEndSlot = (row + 1) * SLOTS_PER_HOUR;
+      const segmentEnd = Math.min(block.endSlot, rowEndSlot);
+      const span = segmentEnd - currentSlot;
+
+      segments.push({
+        row,
+        col,
+        span,
+        isFirst: currentSlot === block.startSlot,
+      });
+
+      currentSlot = segmentEnd;
+    }
+
+    return segments;
+  };
+
   const handleMouseDown = (hourIndex: number, slotIndex: number) => {
+    if (readOnly) return;
+
     const slotNumber = getSlotNumber(hourIndex, slotIndex);
     const existingBlock = getBlockForSlot(slotNumber);
 
@@ -42,11 +77,14 @@ function TimeTable({ ownerId, date, blocks, onChange }: Props) {
   };
 
   const handleMouseEnter = (hourIndex: number, slotIndex: number) => {
+    if (readOnly) return;
     if (dragStart === null) return;
+
     setDragEnd(getSlotNumber(hourIndex, slotIndex));
   };
 
   const handleMouseUp = () => {
+    if (readOnly) return;
     if (dragStart === null || dragEnd === null) return;
 
     const start = Math.min(dragStart, dragEnd);
@@ -79,26 +117,20 @@ function TimeTable({ ownerId, date, blocks, onChange }: Props) {
     return slotNumber >= start && slotNumber <= end;
   };
 
-  const getBlockForSlot = (slotNumber: number) => {
-    return blocks.find(
-      (block) => slotNumber >= block.startSlot && slotNumber < block.endSlot
-    );
-  };
-
-  const isBlockStart = (slotNumber: number, block: TimeBlock) => {
-    return slotNumber === block.startSlot;
-  };
-
   const updateSelectedBlock = (updatedBlock: TimeBlock) => {
+    if (readOnly) return;
+
     onChange(
       blocks.map((block) =>
         block.id === updatedBlock.id ? updatedBlock : block
       )
     );
+
     setSelectedBlock(updatedBlock);
   };
 
   const deleteSelectedBlock = () => {
+    if (readOnly) return;
     if (!selectedBlock) return;
 
     onChange(blocks.filter((block) => block.id !== selectedBlock.id));
@@ -110,48 +142,64 @@ function TimeTable({ ownerId, date, blocks, onChange }: Props) {
       <div className="horizontal-time-table" onMouseUp={handleMouseUp}>
         {Array.from({ length: HOURS }, (_, hourIndex) => (
           <div key={hourIndex} className="horizontal-hour-row">
-            <div className="horizontal-time-label">
+            <div
+              className="horizontal-time-label"
+              onMouseDown={(e) => e.stopPropagation()}
+              onMouseEnter={(e) => e.stopPropagation()}
+            >
               {formatTime(hourIndex * 60)}
             </div>
 
             <div className="horizontal-slot-group">
-              {Array.from({ length: SLOTS_PER_HOUR }, (_, slotIndex) => {
-                const slotNumber = getSlotNumber(hourIndex, slotIndex);
-                const block = getBlockForSlot(slotNumber);
-
-                return (
-                  <div
-                    key={slotIndex}
-                    className={[
-                      "horizontal-slot",
-                      isSelected(hourIndex, slotIndex) ? "selected" : "",
-                      block ? "has-block" : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                    style={block ? { backgroundColor: block.color } : undefined}
-                    onMouseDown={() => handleMouseDown(hourIndex, slotIndex)}
-                    onMouseEnter={() => handleMouseEnter(hourIndex, slotIndex)}
-                    
-                  >
-                    {block && isBlockStart(slotNumber, block) && (
-                      <div className="slot-block-label">
-                        <strong>{block.title}</strong>
-                        <span>
-                          {slotToTime(block.startSlot)} -{" "}
-                          {slotToTime(block.endSlot)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {Array.from({ length: SLOTS_PER_HOUR }, (_, slotIndex) => (
+                <div
+                  key={slotIndex}
+                  className={[
+                    "horizontal-slot",
+                    isSelected(hourIndex, slotIndex) ? "selected" : "",
+                    readOnly ? "readonly-slot" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  onMouseDown={() => handleMouseDown(hourIndex, slotIndex)}
+                  onMouseEnter={() => handleMouseEnter(hourIndex, slotIndex)}
+                />
+              ))}
             </div>
           </div>
         ))}
+
+        <div className="time-block-layer">
+          {blocks.flatMap((block) =>
+            getBlockSegments(block).map((segment, index) => (
+              <div
+                key={`${block.id}-${index}`}
+                className="time-block-bar"
+                style={{
+                  gridRow: `${segment.row + 1}`,
+                  gridColumn: `${segment.col + 2} / span ${segment.span}`,
+                  backgroundColor: block.color,
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  if (!readOnly) setSelectedBlock(block);
+                }}
+              >
+                {segment.isFirst && (
+                  <>
+                    <strong>{block.title}</strong>
+                    <span>
+                      {slotToTime(block.startSlot)} - {slotToTime(block.endSlot)}
+                    </span>
+                  </>
+                )}
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
-      {selectedBlock && (
+      {selectedBlock && !readOnly && (
         <div className="simple-modal-backdrop">
           <div className="simple-modal">
             <h3>기록 수정</h3>
