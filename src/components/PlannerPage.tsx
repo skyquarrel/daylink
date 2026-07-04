@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 import type { PlannerDay } from "../types/planner";
 import PlannerPanel from "./PlannerPanel";
 import FriendSearch from "./FriendSearch";
@@ -10,13 +10,32 @@ const STORAGE_KEY = "daylink-planner-days";
 const today = new Date().toISOString().slice(0, 10);
 
 const initialDays: PlannerDay[] = [
-  { ownerId: "me", date: today, note: "", todos: [], timeBlocks: [], review: "" },
-  { ownerId: "friend", date: today, note: "", todos: [], timeBlocks: [], review: "" },
+  {
+    ownerId: "me",
+    date: today,
+    note: "",
+    todos: [],
+    timeBlocks: [],
+    review: "",
+  },
+  {
+    ownerId: "friend",
+    date: today,
+    note: "",
+    todos: [],
+    timeBlocks: [],
+    review: "",
+  },
 ];
+
+function makeFriendCode(uid: string) {
+  return `DL-${uid.slice(0, 6).toUpperCase()}`;
+}
 
 function PlannerPage() {
   const { user, isAuthLoading } = useAuthUser();
   const [isCloudLoaded, setIsCloudLoaded] = useState(false);
+  const [friendUid, setFriendUid] = useState<string | null>(null);
 
   const [days, setDays] = useState<PlannerDay[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -66,6 +85,7 @@ function PlannerPage() {
           uid: user.uid,
           email: user.email,
           displayName: user.displayName,
+          friendCode: makeFriendCode(user.uid),
           days,
           updatedAt: new Date().toISOString(),
         },
@@ -76,25 +96,39 @@ function PlannerPage() {
     saveFirebaseData();
   }, [days, user, isCloudLoaded]);
 
+  useEffect(() => {
+    if (!friendUid) return;
+
+    const ref = doc(db, "users", friendUid);
+
+    const unsubscribe = onSnapshot(ref, (snapshot) => {
+      if (!snapshot.exists()) return;
+
+      const data = snapshot.data();
+      if (!data.days) return;
+
+      const friendDays = data.days as PlannerDay[];
+      const friendMainDay =
+        friendDays.find((day) => day.ownerId === "me") ?? friendDays[0];
+
+      if (!friendMainDay) return;
+
+      setDays((prev) =>
+        prev.map((day) =>
+          day.ownerId === "friend"
+            ? { ...friendMainDay, ownerId: "friend" }
+            : day
+        )
+      );
+    });
+
+    return () => unsubscribe();
+  }, [friendUid]);
+
   const updateDay = (updatedDay: PlannerDay) => {
     setDays((prev) =>
       prev.map((day) =>
         day.ownerId === updatedDay.ownerId ? updatedDay : day
-      )
-    );
-  };
-
-  const loadFriendDays = (friendDays: PlannerDay[]) => {
-    const friendMainDay =
-      friendDays.find((day) => day.ownerId === "me") ?? friendDays[0];
-
-    if (!friendMainDay) return;
-
-    setDays((prev) =>
-      prev.map((day) =>
-        day.ownerId === "friend"
-          ? { ...friendMainDay, ownerId: "friend" }
-          : day
       )
     );
   };
@@ -110,9 +144,10 @@ function PlannerPage() {
       {user ? (
         <>
           <p className="auth-message">
-            로그인됨: {user.displayName ?? user.email} / Firebase 저장 중
+            로그인됨: {user.displayName ?? user.email} / 내 친구 코드:{" "}
+            {makeFriendCode(user.uid)}
           </p>
-          <FriendSearch onFriendLoaded={loadFriendDays} />
+          <FriendSearch onFriendSelected={setFriendUid} />
         </>
       ) : (
         <p className="auth-message">
